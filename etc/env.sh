@@ -1,3 +1,3 @@
 #!/bin/bash
-source "/scratch3/BMC/gsd-hpcs/Daniel.Abdi/miniconda3/etc/profile.d/conda.sh"
-conda activate hrrrcast
+eval "$(/home/Zachary.Moon/.local/bin/micromamba shell hook --shell bash)"
+micromamba activate /scratch3/NCEPDEV/naqfc/Zachary.Moon/micromamba/envs/hrrrcast
