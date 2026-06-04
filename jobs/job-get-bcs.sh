@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=get_bcs
 #SBATCH --output=logs/get_bcs_%j.out
-#SBATCH --partition=u1-service
+#SBATCH --partition=short
 #SBATCH --account=@[ACCNR]
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1

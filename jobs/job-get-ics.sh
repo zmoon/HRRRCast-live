@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=get_ics
 #SBATCH --output=logs/get_ics_%j.out
-#SBATCH --partition=u1-service
+#SBATCH --partition=short
 #SBATCH --account=@[ACCNR]
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1

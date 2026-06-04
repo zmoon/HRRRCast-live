@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --job-name=fcst
 #SBATCH --output=logs/fcst_%j.out
-#SBATCH --partition=u1-h100
-#SBATCH --qos=@[FCST_QOS]
-#SBATCH --gres=gpu:h100:1
+#SBATCH --partition=gpu
+##SBATCH --qos=@[FCST_QOS]
+#SBATCH --gres=gpu:a100:1
 #SBATCH --account=@[FCST_ACCNR]
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1

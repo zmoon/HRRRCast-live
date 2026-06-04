@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=plot
 #SBATCH --output=logs/plot_%j.out
-#SBATCH --partition=u1-compute
+#SBATCH --partition=short
 #SBATCH --account=@[ACCNR]
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=@[LEAD_HOUR]

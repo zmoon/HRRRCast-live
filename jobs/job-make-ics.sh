@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=make_ics
 #SBATCH --output=logs/make_ics_%j.out
-#SBATCH --partition=u1-compute
+#SBATCH --partition=short
 #SBATCH --account=@[ACCNR]
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1

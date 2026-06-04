@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=compute_pmm
 #SBATCH --output=logs/compute_pmm_%j.out
-#SBATCH --partition=u1-compute
+#SBATCH --partition=medium
 #SBATCH --account=@[ACCNR]
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
