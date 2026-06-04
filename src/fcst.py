@@ -628,7 +628,13 @@ class WeatherForecaster:
         mem_str = f"avg" if str(member) == "avg" else f"mem{int(member)}"
         nc_path = outdir / f"hrrrcast_{mem_str}_f{hour:02d}.nc"
         logger.info(f"Saving single-hour NetCDF to {nc_path}")
-        ds_hour.to_netcdf(nc_path)
+        ds_hour.to_netcdf(
+            nc_path,
+            encoding={
+                vn: {"zlib": True, "complevel": 3} for vn in ds_hour.data_vars
+                if pd.api.types.is_numeric_dtype(ds_hour[vn].dtype)
+            },
+        )
         return str(nc_path)
 
     def write_single_hour_grib2(
