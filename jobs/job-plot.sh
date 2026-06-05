@@ -8,6 +8,7 @@
 #SBATCH --time=@[PLOT_WALLTIME]
 #SBATCH --deadline=@[DEADLINE]
 #SBATCH --exclusive
+#SBATCH --mem=360G
 
 module load WebProxy
 

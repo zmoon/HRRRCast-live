@@ -6,6 +6,7 @@
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --cpus-per-task=4
+#SBATCH --mem-per-cpu=4G
 #SBATCH --time=@[GET_ICS_WALLTIME]
 #SBATCH --deadline=@[DEADLINE]
 

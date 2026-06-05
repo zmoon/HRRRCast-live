@@ -8,6 +8,7 @@
 #SBATCH --time=@[MAKE_BCS_WALLTIME]
 #SBATCH --deadline=@[DEADLINE]
 #SBATCH --exclusive
+#SBATCH --mem=360G
 
 # set vars
 INIT_TIME="@[INIT_TIME]"
