@@ -859,7 +859,6 @@ class WeatherForecaster:
             try:
                 ds_hour = self.build_single_hour_dataset(init_datetime, hour, lats, lons, data)
                 _ = self.write_single_hour_netcdf(init_datetime, hour, ds_hour, output_dir, member)
-                # self.write_single_hour_grib2(init_datetime, hour, ds_hour, output_dir, member)
                 logger.debug(f"Completed writing hour {hour} for member {member}")
             except Exception as e:
                 logger.error(f"Failed writing hour {hour} outputs for member {member}: {e}")

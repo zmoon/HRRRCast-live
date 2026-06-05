@@ -10,11 +10,6 @@
 #SBATCH --deadline=@[DEADLINE]
 #SBATCH --mem=128G
 
-# load wgrib2 modules
-module use /contrib/spack-stack/spack-stack-1.9.1/envs/ue-oneapi-2024.2.1/install/modulefiles/Core/
-module load stack-oneapi
-module load wgrib2
-
 # set vars
 INIT_TIME="@[INIT_TIME]"
 PACKAGEROOT=@[PACKAGEROOT]

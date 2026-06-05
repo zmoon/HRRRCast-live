@@ -53,7 +53,7 @@ fi
 PMM_POLL_SECONDS="60"
 PMM_MIN_AGE_SECONDS="90"
 NETCDF2GRIB_SECTION3=
-WGRIB2="wgrib2"
+WGRIB2=
 
 # submit job and check for failures
 submit_with_check() {

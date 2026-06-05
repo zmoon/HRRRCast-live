@@ -36,8 +36,6 @@ import xarray as xr
 import time
 import utils
 
-from nc2grib import Netcdf2Grib
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -284,8 +282,6 @@ def compute_ensemble_pmm(datetime_str: str,
         output_date_dir = os.path.join(output_dir, date_str)
         utils.make_directory(output_date_dir)
 
-        converter = Netcdf2Grib()
-
         # Polling configuration (overridable via env)
         poll_seconds = int(os.environ.get("PMM_POLL_SECONDS", "60"))
         min_age_seconds = int(os.environ.get("PMM_MIN_AGE_SECONDS", "90"))
@@ -339,9 +335,6 @@ def compute_ensemble_pmm(datetime_str: str,
             out_nc = os.path.join(output_date_dir, f"hrrrcast_memavg_f{h:02d}.nc")
             logger.info(f"Saving per-hour processed ensemble to: {out_nc}")
             processed_ds.to_netcdf(out_nc)
-
-            # Save per-hour GRIB2 for avg
-            converter.save_grib2(init_datetime, processed_ds, 'avg', output_date_dir)
 
             # Close datasets to free memory
             ensemble_ds.close()

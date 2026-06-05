@@ -23,6 +23,7 @@ Notes/assumptions:
 """
 
 import os
+import shutil
 import subprocess
 from datetime import datetime, timedelta
 from typing import Optional, Tuple
@@ -437,6 +438,10 @@ class Netcdf2Grib:
         # Optionally create an index via wgrib2 if available
         try:
             wgrib2 = os.environ.get("WGRIB2", "wgrib2")
+            if not wgrib2.strip():
+                raise RuntimeError("WGRIB2 environment variable is empty.")
+            if not shutil.which(wgrib2):
+                raise RuntimeError(f"WGRIB2 executable '{wgrib2}' not found in PATH.")
             idxfile = f"{outfile}.idx"
             with open(idxfile, "w") as f_out:
                 subprocess.run([wgrib2, "-s", outfile], stdout=f_out, check=True)
