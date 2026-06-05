@@ -9,6 +9,8 @@
 #SBATCH --deadline=@[DEADLINE]
 #SBATCH --exclusive
 
+module load WebProxy
+
 # set vars
 INIT_TIME="@[INIT_TIME]"
 LEAD_HOUR=@[LEAD_HOUR]

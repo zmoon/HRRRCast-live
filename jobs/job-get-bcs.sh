@@ -9,6 +9,8 @@
 #SBATCH --time=@[GET_BCS_WALLTIME]
 #SBATCH --deadline=@[DEADLINE]
 
+module load WebProxy
+
 # set vars
 INIT_TIME="@[INIT_TIME]"
 LEAD_HOUR=@[LEAD_HOUR]
