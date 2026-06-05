@@ -10,7 +10,7 @@
 #SBATCH --cpus-per-task=48
 #SBATCH --time=@[FCST_WALLTIME]
 #SBATCH --deadline=@[DEADLINE]
-#SBATCH --mem=192G
+#SBATCH --mem=360G
 
 # set vars
 INIT_TIME="@[INIT_TIME]"
