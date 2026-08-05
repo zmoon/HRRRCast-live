@@ -137,8 +137,10 @@ class ForecastModel:
             tf.config.set_visible_devices([], "GPU")
             logger.warning("No GPUs used, running on CPU only.")
 
-        # set JIT compilation of graphs
-        tf.config.optimizer.set_jit(True)
+        # Control XLA JIT via env var so job scripts can choose speed vs memory.
+        use_jit = utils.env_flag("HRRRCAST_TF_JIT", True)
+        tf.config.optimizer.set_jit(use_jit)
+        logger.info(f"TensorFlow XLA JIT enabled: {use_jit} (HRRRCAST_TF_JIT)")
     
     def _load_model(self):
         """Load the TensorFlow model."""

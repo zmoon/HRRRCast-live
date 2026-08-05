@@ -54,9 +54,10 @@ MEMBER_RANGE="${start}-${end}"
 
 echo "In fcst, INIT_TIME=${INIT_TIME}, LEAD_HOUR=${LEAD_HOUR}, TASK_ID=${TASK_ID}, MEMBER_RANGE=${MEMBER_RANGE}, base_dir=${DATAROOT}"
 
-# Reduce memory usage
+# Reduce memory fragmentation
 export TF_GPU_ALLOCATOR=cuda_malloc_async
-# export TF_XLA_FLAGS="--tf_xla_auto_jit=0"
+# Disable XLA JIT to reduce memory usage
+export HRRRCAST_TF_JIT=0
 
 python ${PACKAGEROOT}/src/fcst.py $PACKAGEROOT/net-diffusion/model.keras ${INIT_TIME} ${LEAD_HOUR} \
     --num_members ${N_ENSEMBLES} --members ${MEMBER_RANGE} --base_dir ${DATAROOT} --output_dir ${DATAROOT}

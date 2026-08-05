@@ -1,4 +1,5 @@
 import logging
+import os
 from dateutil import parser
 from typing import Tuple, Union
 from pathlib import Path
@@ -9,6 +10,25 @@ import time
 DEFAULT_MAX_RETRIES = 3
 DEFAULT_RETRY_DELAY = 2  # seconds
 DEFAULT_TIMEOUT = 300    # seconds
+
+
+def env_flag(name: str, default: bool) -> bool:
+    """Parse an environment variable into a Boolean with a fallback default."""
+    value = os.getenv(name)
+    if value is None:
+        return default
+
+    value = value.strip().lower()
+
+    if value in {"1", "true", "t", "yes", "y", "on"}:
+        return True
+    elif value in {"0", "false", "f", "no", "n", "off"}:
+        return False
+    else:
+        logging.warning(
+            f"Unrecognized value for {name}={value!r}; falling back to default={default}."
+        )
+        return default
 
 def validate_datetime(datetime_str: str) -> Tuple[object, str, str, str, str]:
     """Validate and format any datetime string that Python can parse.
