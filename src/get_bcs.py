@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import utils
-from utils import setup_logging, create_output_directory, download_file_with_retry
+from utils import setup_logging, create_output_directory, ensure_file_from_url
 
 # -------------------------------
 # Configuration
@@ -118,7 +118,7 @@ def download_gfs_files(year: str, month: str, day: str, hour: str, lead_hours: i
     # Use ThreadPoolExecutor for multiple files
     with ThreadPoolExecutor(max_workers=4) as executor:
         future_to_url = {
-            executor.submit(download_file_with_retry, url, str(output_dir / filename)): (url, filename)
+            executor.submit(ensure_file_from_url, url, str(output_dir / filename)): (url, filename)
             for url, filename in urls
         }
         

@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import List, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import utils
-from utils import setup_logging, create_output_directory, download_file_with_retry
+from utils import setup_logging, create_output_directory, ensure_file_from_url
 
 # -------------------------------
 # Configuration
@@ -60,7 +60,7 @@ def download_hrrr_files(year: str, month: str, day: str, hour: str, output_dir: 
     
     with ThreadPoolExecutor(max_workers=2) as executor:
         future_to_url = {
-            executor.submit(download_file_with_retry, url, str(output_dir / filename)): (url, filename)
+            executor.submit(ensure_file_from_url, url, str(output_dir / filename)): (url, filename)
             for url, filename in urls
         }
         
@@ -114,7 +114,7 @@ def download_hrrr_data(datetime_str: str, base_dir: str = "{DATAROOT}/") -> dict
         prev_path = output_dir / prev_filename
         if not prev_path.exists():
             logger.info(f"Downloading previous hour surface 1h forecast (APCP source) into current directory from {prev_url}")
-            results['prev_hour_surface_f01'] = download_file_with_retry(prev_url, str(prev_path))
+            results['prev_hour_surface_f01'] = ensure_file_from_url(prev_url, str(prev_path))
         else:
             logger.info(f"Previous hour surface 1h forecast already present in current directory: {prev_path}")
             results['prev_hour_surface_f01'] = True

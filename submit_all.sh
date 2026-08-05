@@ -54,6 +54,8 @@ PMM_POLL_SECONDS="60"
 PMM_MIN_AGE_SECONDS="90"
 NETCDF2GRIB_SECTION3=
 WGRIB2=
+HRRRCAST_USE_INPUT_CACHE="${HRRRCAST_USE_INPUT_CACHE:-0}"
+HRRRCAST_INPUT_CACHE_ROOT="${HRRRCAST_INPUT_CACHE_ROOT:-}"
 
 # submit job and check for failures
 submit_with_check() {
@@ -73,6 +75,8 @@ fi
 cd $DATAROOT
 
 echo "PACKAGEROOT=$PACKAGEROOT,DATAROOT=$DATAROOT"
+echo "HRRRCAST_USE_INPUT_CACHE=$HRRRCAST_USE_INPUT_CACHE"
+echo "HRRRCAST_INPUT_CACHE_ROOT=$HRRRCAST_INPUT_CACHE_ROOT"
 
 atparse < $PACKAGEROOT/jobs/job-get-ics.sh > $DATAROOT/logs/job-get-ics.sh
 jobid1=$(submit_with_check sbatch --parsable $DATAROOT/logs/job-get-ics.sh)
