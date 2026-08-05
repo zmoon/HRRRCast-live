@@ -605,6 +605,33 @@ class WeatherForecaster:
         # compute diagnostics
         ds_hour = compute_diagnostics(ds_hour)
 
+        # Select desired variables to reduce storage needs.
+        desired_keep = [
+            "UGRD10M",
+            "VGRD10M",
+            "GUST",
+            "T2M",
+            "D2M",
+            "PRES",
+            "APCP",
+            "REFC",
+        ]
+        keep = [vn for vn in desired_keep if vn in ds_hour.data_vars]
+        if not keep:
+            logger.warning(
+                f"No desired variables from {desired_keep} found in ds_hour for hour {hour}; "
+                "keeping all variables. "
+                f"All available variables: {sorted(ds_hour.data_vars)}."
+            )
+            keep = list(ds_hour.data_vars)
+        elif keep != desired_keep:
+            missing = sorted(set(desired_keep) - set(keep))
+            logger.warning(
+                f"Some desired variables from {desired_keep} missing in ds_hour for hour {hour}: {missing}. "
+                f"All available variables: {sorted(ds_hour.data_vars)}."
+            )
+        ds_hour = ds_hour[keep]
+
         return ds_hour
 
     def write_single_hour_netcdf(
