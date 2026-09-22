@@ -808,6 +808,13 @@ class WeatherForecaster:
             Xn_list = [self._member_noise(m) for m in members]
             Xn = tf.concat(Xn_list, axis=0)  # (batch_size, H, W, C)
 
+            # Each step only rewrites the noise block and the step encoding, so the
+            # surrounding channel blocks are loop-invariant.
+            head = X[:, :, :, :start]
+            mid = X[:, :, :, start + num_output_channels :-2]
+            tail = X[:, :, :, -1:]
+            step_shape = tf.concat([tf.shape(X)[:-1], [1]], axis=0)
+
             # iterate over diffusion steps
             for t_ in range(NUM_INFERENCE_STEPS - 1):
                 ti = NUM_INFERENCE_STEPS - 1 - t_
@@ -815,22 +822,18 @@ class WeatherForecaster:
 
                 # set the correct time embedding
                 step_encoding = tf.fill(
-                    tf.concat([tf.shape(X)[:-1], [1]], axis=0),
+                    step_shape,
                     tf.cast(t / NUM_DIFFUSION_STEPS, tf.float32),
                 )
-                X = tf.concat(
-                    [
-                        X[:, :, :, :start],
-                        Xn,
-                        X[:, :, :, start + num_output_channels :-2],
-                        step_encoding,
-                        X[:, :, :, -1:],
-                    ],
+                X_in = tf.concat(
+                    [head, Xn, mid, step_encoding, tail],
                     axis=-1,
                 )
 
                 # predict total noise
-                x_0 = model.predict(X)
+                x_0 = model.predict(X_in)
+                # release before the next step allocates its own full-size input
+                del X_in
                 epsilon_t = compute_epsilon(Xn, x_0, t)
                 Xn = ddim(Xn, epsilon_t, ti, seed=members)
 
