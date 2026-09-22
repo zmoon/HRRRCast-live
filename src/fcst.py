@@ -216,7 +216,6 @@ class WeatherForecaster:
         default_predicted = len(pl_vars) * len(levels) + len(sfc_vars)
         self.input_shape = data_loader_hrrr.get_model_input().shape
         hrrr_channels = self.input_shape[-1]
-        nlat, nlon = self.input_shape[1], self.input_shape[2] 
 
         if predicted_channels is None:
             predicted_channels = default_predicted
@@ -242,29 +241,28 @@ class WeatherForecaster:
             logger.error(f"Error loading/processing normalization file: {e}")
             raise
 
-        # set member noise for all members
-        self.member_noise = {}
-        for member in self.members:
-            if self.use_diffusion:
-                noise = tf.random.stateless_normal(
-                    shape=(nlat, nlon, self.predicted_channels),
-                    dtype=tf.float32,
-                    seed=[member, 0]
-                )
-                noise = tf.expand_dims(noise, axis=0)
-            else:
-                noise = tf.random.stateless_uniform(
-                    shape=(),
-                    minval=0.0,
-                    maxval=1.0,
-                    dtype=tf.float32,
-                    seed=[member, 0]
-                )
-                noise = tf.tile(
-                    tf.reshape(noise, (1, 1, 1, 1)),
-                    [1, nlat, nlon, 1]
-                )
-            self.member_noise[member] = noise
+    def _member_noise(self, member: int) -> tf.Tensor:
+        """Generate reproducible noise for one member on demand."""
+        nlat, nlon = self.input_shape[1], self.input_shape[2]
+        if self.use_diffusion:
+            noise = tf.random.stateless_normal(
+                shape=(nlat, nlon, self.predicted_channels),
+                dtype=tf.float32,
+                seed=[member, 0],
+            )
+            return tf.expand_dims(noise, axis=0)
+
+        noise = tf.random.stateless_uniform(
+            shape=(),
+            minval=0.0,
+            maxval=1.0,
+            dtype=tf.float32,
+            seed=[member, 0],
+        )
+        return tf.tile(
+            tf.reshape(noise, (1, 1, 1, 1)),
+            [1, nlat, nlon, 1],
+        )
 
     def _compute_pmm_mean(self, member_outputs: Dict[int, np.ndarray], method: int = 2) -> Tuple[np.ndarray, List[int]]:
         """Compute PMM mean for REFC and APCP channels only.
@@ -807,7 +805,7 @@ class WeatherForecaster:
             start = self.predicted_channels + self.gfs_channels
 
             # Start from complete gaussian noise (per member)
-            Xn_list = [self.member_noise[m] for m in members]
+            Xn_list = [self._member_noise(m) for m in members]
             Xn = tf.concat(Xn_list, axis=0)  # (batch_size, H, W, C)
 
             # iterate over diffusion steps
@@ -839,7 +837,7 @@ class WeatherForecaster:
             return Xn
         else:
             # set CRPS member (per-member noise)
-            Xn_list = [self.member_noise[m] for m in members]
+            Xn_list = [self._member_noise(m) for m in members]
             Xn = tf.concat(Xn_list, axis=0)  # (batch_size, H, W, C)
             X = tf.concat(
                 [
@@ -868,10 +866,10 @@ class WeatherForecaster:
         # Initial input (updated during rollout)
         X = tf.convert_to_tensor(initial_input, dtype=tf.float32)
         
-        # Track state_from_hour per member
-        state_from_hour = {
-            member: tf.identity(X[0:1, :, :, :self.predicted_channels]) for member in self.members
-        }
+        # Keep member anchor states in CPU memory between model calls.
+        # float32 to match the dtype X is cast to; the source npz may be float64.
+        initial_state = initial_input[0:1, :, :, :self.predicted_channels].astype(np.float32)
+        state_from_hour = {member: initial_state for member in self.members}
 
         start_pred_noise = self.predicted_channels + self.gfs_channels
 
@@ -899,7 +897,7 @@ class WeatherForecaster:
 
         # Write out hour 0 (f00) products representing the initial state for each member
         hour0_outputs: Dict[int, np.ndarray] = {
-            member: state_from_hour[member].numpy().copy() for member in self.members
+            member: state_from_hour[member].copy() for member in self.members
         }
         if self.use_nudging:
             pmm0_values, pmm0_channels = self._compute_pmm_mean(hour0_outputs)
@@ -996,12 +994,13 @@ class WeatherForecaster:
                 # Process outputs for each member in batch
                 for batch_idx, member in enumerate(batch_members_list):
                     y = y_batch[batch_idx:batch_idx+1]
+                    y_numpy = y.numpy().copy()
                     
                     # When we reach a 6-hour boundary, update the reference 
                     # state for this member
                     if hour % 6 == 0:
-                        state_from_hour[member] = y
-                    hour_member_outputs[member] = y.numpy().copy()
+                        state_from_hour[member] = y_numpy.copy()
+                    hour_member_outputs[member] = y_numpy
 
             # Compute PMM mean for this hour and nudge members before writing (if enabled)
             if self.use_nudging:
