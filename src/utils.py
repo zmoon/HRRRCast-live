@@ -104,6 +104,15 @@ def download_file_with_retry(url: str, output_path: Union[str, Path], max_retrie
     return False
 
 
+def add_nc_compression(encoding: dict, ds, complevel: int = 3) -> dict:
+    """Add lossless zlib compression to the NetCDF encoding of numeric, non-scalar data variables."""
+    for vn in ds.data_vars:
+        da = ds[vn]
+        if da.ndim > 0 and da.dtype.kind in "biuf":
+            encoding.setdefault(vn, {}).update(zlib=True, complevel=complevel)
+    return encoding
+
+
 def env_flag(name: str, default: bool) -> bool:
     """Parse an environment variable into a Boolean with a fallback default."""
     value = os.getenv(name)
