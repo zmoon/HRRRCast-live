@@ -52,6 +52,7 @@ from utils import setup_logging
 from diagnostics import compute_diagnostics
 from cf_attributes import apply_cf_attributes, get_cf_encoding
 from compute_pmm import compute_PMM
+import precision
 
 logger = None
 
@@ -184,6 +185,7 @@ class ForecastModel:
         except Exception as e:
             logger.error(f"Error loading model: {e}")
             raise
+        self.model = precision.apply_from_env(self.model)
     
     def predict(self, input_data: np.ndarray) -> np.ndarray:
         """Make prediction using the loaded model."""

@@ -20,6 +20,7 @@ DATAROOT=@[DATAROOT]
 ENVMODE=@[ENVMODE]
 N_ENSEMBLES=@[N_ENSEMBLES]
 N_GPUS=@[N_GPUS]
+HRRRCAST_TF_PRECISION="@[HRRRCAST_TF_PRECISION]"
 
 export NETCDF2GRIB_SECTION3=@[NETCDF2GRIB_SECTION3]
 export WGRIB2=@[WGRIB2]
@@ -58,6 +59,9 @@ echo "In fcst, INIT_TIME=${INIT_TIME}, LEAD_HOUR=${LEAD_HOUR}, TASK_ID=${TASK_ID
 export TF_GPU_ALLOCATOR=cuda_malloc_async
 # Disable XLA JIT to reduce memory usage
 export HRRRCAST_TF_JIT=0
+# Model compute precision: fp32, fp16, or bf16
+export HRRRCAST_TF_PRECISION
+echo "HRRRCAST_TF_PRECISION=${HRRRCAST_TF_PRECISION}"
 
 python ${PACKAGEROOT}/src/fcst.py $PACKAGEROOT/net-diffusion/model.keras ${INIT_TIME} ${LEAD_HOUR} \
     --num_members ${N_ENSEMBLES} --members ${MEMBER_RANGE} --base_dir ${DATAROOT} --output_dir ${DATAROOT}
