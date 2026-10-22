@@ -741,10 +741,12 @@ class WeatherForecaster:
             Xn = tf.concat(Xn_list, axis=0)  # (batch_size, H, W, C)
 
             # Each step only rewrites the noise block and the step encoding, so the
-            # surrounding channel blocks are loop-invariant.
-            head = X[:, :, :, :start]
-            mid = X[:, :, :, start + num_output_channels :-2]
-            tail = X[:, :, :, -1:]
+            # surrounding channel blocks are loop-invariant. Hold them in host memory;
+            # each step's concat copies them to the GPU transiently.
+            with tf.device("/CPU:0"):
+                head = tf.convert_to_tensor(X[:, :, :, :start])
+                mid = tf.convert_to_tensor(X[:, :, :, start + num_output_channels :-2])
+                tail = tf.convert_to_tensor(X[:, :, :, -1:])
             step_shape = tf.concat([tf.shape(X)[:-1], [1]], axis=0)
 
             def build_diffusion_input(
@@ -829,8 +831,8 @@ class WeatherForecaster:
         """
         logger.info(f"Starting autoregressive rollout for {target_hour} hours")
         
-        # Initial input (updated during rollout)
-        X = tf.convert_to_tensor(initial_input, dtype=tf.float32)
+        # Initial input (updated during rollout); inputs are assembled with numpy to keep them off the GPU.
+        X = initial_input.astype(np.float32, copy=False)
         
         # Keep member anchor states in CPU memory between model calls.
         # float32 to match the dtype X is cast to; the source npz may be float64.
@@ -915,7 +917,7 @@ class WeatherForecaster:
             )
 
             # NOTE: forcing_input no longer includes hour 0, so hour=1 corresponds to index 0
-            X_base = tf.concat(
+            X_base = np.concatenate(
                 [
                     X[:, :, :, start_pred_noise:-(7 + 2)],
                     date_encoding,
@@ -942,18 +944,19 @@ class WeatherForecaster:
                     forcing_idx = np.clip(forcing_idx, 0, forcing_input.shape[0] - 1)
 
                     # Assemble input for this member
-                    X_member = tf.concat(
+                    X_member = np.concatenate(
                         [
                             state_from_hour[member],
                             forcing_input[forcing_idx:forcing_idx + 1, :, :, :],
                             X_base,
                         ],
                         axis=-1,
+                        dtype=np.float32,  # forcing npz may be float64
                     )
                     batch_X_members.append(X_member)
                 
                 # Stack batch inputs
-                X_batch = tf.concat(batch_X_members, axis=0)
+                X_batch = np.concatenate(batch_X_members, axis=0)
                 
                 # Predict next-hour fields for entire batch using hour-specific noise
                 t0 = time.time()
